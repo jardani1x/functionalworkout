@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WebLLM Minimal Demo</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }
+      #log { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-height: 6rem; }
+      .row { display:flex; gap:0.5rem; align-items:center; }
+      input[type=text] { flex:1; padding:0.6rem; }
+      button { padding:0.6rem 1rem; }
+      .muted { color: #666; font-size: 0.9rem; }
+      .ok { color: #0a7; }
+      .err { color: #c00; }
+    </style>
+  </head>
+  <body>
+    <h1>WebLLM Minimal Demo</h1>
+    <p class="muted">This file uses the ESM build of <code>@mlc-ai/web-llm</code> only. Serve with COOP/COEP headers.</p>
+
+    <div id="status" class="muted">Idle</div>
+    <div id="log"></div>
+
+    <div class="row" style="margin-top:1rem;">
+      <input id="user" type="text" placeholder="Ask something…" />
+      <button id="send">Send</button>
+    </div>
+
+    <script type="module">
+      import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+      const status = document.getElementById("status");
+      const log = document.getElementById("log");
+      const input = document.getElementById("user");
+      const send = document.getElementById("send");
+
+      let engine;
+      let busy = false;
+
+      function say(line, cls) {
+        const p = document.createElement("div");
+        if (cls) p.className = cls;
+        p.textContent = line;
+        log.appendChild(p);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      async function init() {
+        // Use a known-good small model first (fast + light).
+        const model = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
+        status.textContent = "Initializing: " + model;
+
+        const initProgressCallback = (r) => {
+          status.textContent = "Loading: " + r.text;
+        };
+
+        try {
+          engine = await CreateMLCEngine(model, { initProgressCallback });
+          status.textContent = "Model ready ✓";
+          status.className = "ok";
+        } catch (e) {
+          status.textContent = "Error loading model. See console.";
+          status.className = "err";
+          console.error(e);
+          say("Init error: " + e, "err");
+        }
+      }
+
+      async function chat() {
+        if (!engine || busy) return;
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = "";
+        say("You: " + q);
+        say("Bot: ", "muted");
+        busy = true;
+        try {
+          const stream = engine.chat.completions.create({
+            messages: [{ role: "user", content: q }],
+            stream: true,
+          });
+          let acc = "";
+          for await (const chunk of stream) {
+            const delta = chunk.choices?.[0]?.delta?.content || "";
+            acc += delta;
+            log.lastChild.textContent = "Bot: " + acc;
+          }
+        } catch (e) {
+          say("Chat error: " + e, "err");
+          console.error(e);
+        } finally {
+          busy = false;
+        }
+      }
+
+      send.addEventListener("click", chat);
+      input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") chat(); });
+
+      // Start
+      init();
+    </script>
+  </body>
+</html>

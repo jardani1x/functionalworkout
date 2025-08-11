@@ -1,0 +1,54 @@
+{
+  "categories": [
+    { "category": "Chest", "items": [
+      "Push-Up", "Diamond Push-Up", "Ring Push-Up", "Hand Release Push-Up",
+      "Barbell Bench Press", "Dumbbell Bench Press", "Ring Dip", "Box Push-Up"
+    ]},
+    { "category": "Legs", "items": [
+      "Air Squat", "Front Squat", "Back Squat", "Overhead Squat",
+      "Lunges", "Walking Lunge", "Bulgarian Split Squat", "Pistol Squat",
+      "Box Step-Up", "Wall Ball Shot"
+    ]},
+    { "category": "Shoulders", "items": [
+      "Strict Press", "Push Press", "Push Jerk", "Split Jerk",
+      "Handstand Push-Up", "Pike Push-Up", "Lateral Raise", "Rear Delt Fly",
+      "Dumbbell Snatch", "Kettlebell Swing (American)", "Kettlebell Swing (Russian)"
+    ]},
+    { "category": "Back", "items": [
+      "Deadlift", "Sumo Deadlift High Pull", "Bent-Over Row", "Good Morning",
+      "Hip Hinge", "Superman Hold"
+    ]},
+    { "category": "Olympic Weightlifting", "items": [
+      "Snatch", "Power Snatch", "Hang Snatch", "Clean", "Power Clean", "Hang Clean",
+      "Jerk", "Clean & Jerk", "Thruster", "Bear Complex"
+    ]},
+    { "category": "Gymnastics – Pulling", "items": [
+      "Strict Pull-Up", "Kipping Pull-Up", "Butterfly Pull-Up", "Chest-to-Bar Pull-Up",
+      "Ring Row", "Bar Muscle-Up", "Ring Muscle-Up", "Rope Climb", "Towel Pull-Up"
+    ]},
+    { "category": "Core / Midline", "items": [
+      "Sit-Up", "Toes-to-Bar", "Knees-to-Elbows", "GHD Sit-Up", "Hollow Hold",
+      "Hollow Rock", "Plank", "V-Up", "Russian Twist"
+    ]},
+    { "category": "Monostructural (Cardio)", "items": [
+      "Run", "Row", "Ski Erg", "Assault Bike / Echo Bike", "Double-Unders",
+      "Single-Unders", "Burpee", "Burpee Box Jump Over", "Shuttle Run"
+    ]},
+    { "category": "Kettlebell", "items": [
+      "Kettlebell Swing", "Kettlebell Clean", "Kettlebell Snatch", "Turkish Get-Up",
+      "Goblet Squat", "Kettlebell Deadlift", "Farmer Carry"
+    ]},
+    { "category": "Dumbbell", "items": [
+      "Dumbbell Snatch", "Devil Press", "Dumbbell Clean", "Dumbbell Thruster",
+      "Dumbbell Push Press", "Dumbbell Lunge", "Renegade Row", "Man Maker"
+    ]},
+    { "category": "Strongman / Odd Objects", "items": [
+      "Sandbag Clean", "Sandbag Over Shoulder", "Sandbag Carry", "Yoke Carry",
+      "Sled Push", "Sled Drag", "Farmer Carry", "D-Ball Clean"
+    ]},
+    { "category": "Mobility / Accessory", "items": [
+      "Band Pull-Apart", "Face Pull", "Banded Hip Opener", "Ankle Dorsiflexion Stretch",
+      "Thoracic Extension", "Couch Stretch"
+    ]}
+  ]
+}

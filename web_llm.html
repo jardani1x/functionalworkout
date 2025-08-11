@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebLLM CDN Example</title>
+    <style>
+        body { font-family: sans-serif; }
+        #chatbox { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; height: 300px; overflow-y: scroll; }
+        .message { margin-bottom: 10px; }
+        .user { text-align: right; color: blue; }
+        .assistant { text-align: left; color: green; }
+    </style>
+</head>
+<body>
+    <h1>WebLLM Chatbot</h1>
+    <div id="status">Loading model...</div>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button id="sendBtn">Send</button>
+
+    <script type="module">
+        import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+        const statusDiv = document.getElementById("status");
+        const chatboxDiv = document.getElementById("chatbox");
+        const userInput = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        let engine;
+        let isGenerating = false;
+
+        async function initWebLLM() {
+            // Callback to show loading progress
+            const initProgressCallback = (report) => {
+                statusDiv.textContent = `Loading: ${report.text}`;
+            };
+
+            // You can choose a pre-built model from WebLLM's supported list
+            // const selectedModel = "Llama-3-8B-Instruct-q4f16_1-MLC"; // or Phi-3 mini for speed
+            const model = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
+            statusDiv.textContent = `Initializing and loading model: ${selectedModel}... This may take a while.`;
+
+            // Create the engine instance
+            try {
+                engine = await CreateMLCEngine(selectedModel, {
+                    initProgressCallback,
+                });
+                statusDiv.textContent = "Model loaded. You can start chatting!";
+                sendBtn.disabled = false;
+            } catch (e) {
+                statusDiv.textContent = "Error loading model. Please check the console for details.";
+                console.error("Engine initialization failed:", e);
+            }
+        }
+
+        async function sendMessage() {
+            if (isGenerating || !userInput.value.trim()) return;
+
+            const userMessage = userInput.value;
+            userInput.value = "";
+            isGenerating = true;
+
+            // Display user message in chatbox
+            const userMsgDiv = document.createElement("div");
+            userMsgDiv.className = "message user";
+            userMsgDiv.textContent = `You: ${userMessage}`;
+            chatboxDiv.appendChild(userMsgDiv);
+
+            // Create a placeholder for the assistant's response
+            const assistantMsgDiv = document.createElement("div");
+            assistantMsgDiv.className = "message assistant";
+            assistantMsgDiv.textContent = "Bot: ";
+            chatboxDiv.appendChild(assistantMsgDiv);
+
+            // Scroll to the bottom of the chatbox
+            chatboxDiv.scrollTop = chatboxDiv.scrollHeight;
+
+            // Generate a streaming response
+            try {
+                const stream = engine.chat.completions.create({
+                    messages: [{ role: "user", content: userMessage }],
+                    stream: true,
+                });
+
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content || "";
+                    assistantMsgDiv.textContent += content;
+                    chatboxDiv.scrollTop = chatboxDiv.scrollHeight;
+                }
+            } catch (e) {
+                assistantMsgDiv.textContent += `(Error: ${e})`;
+                console.error("Chat completion error:", e);
+            } finally {
+                isGenerating = false;
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener("click", sendMessage);
+        userInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        // Initialize WebLLM when the page loads
+        document.addEventListener("DOMContentLoaded", initWebLLM);
+    </script>
+</body>
+</html>

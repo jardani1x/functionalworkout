@@ -1,0 +1,123 @@
+{
+  "categories": [
+    {
+      "name": "Chest workout",
+      "exercises": [
+        {"name":"Push-up","description":"Strict push-up from plank; chest to floor, full lockout.","tags":["push","bodyweight","chest"]},
+        {"name":"Diamond Push-up","description":"Hands form a diamond beneath chest; triceps emphasis.","tags":["push","triceps","bodyweight"]},
+        {"name":"Ring Dip","description":"Support on rings; descend, press to elbow lockout.","tags":["rings","push","chest"]},
+        {"name":"Bench Press","description":"Bar to chest, press to lockout; various grips.","tags":["barbell","press","chest"]}
+      ]
+    },
+    {
+      "name": "Leg workout",
+      "exercises": [
+        {"name":"Air Squat","description":"Unloaded squat to full depth as mobility allows.","tags":["squat","bodyweight","legs"]},
+        {"name":"Back Squat","description":"Bar on back; squat below parallel.","tags":["barbell","squat","legs"]},
+        {"name":"Front Squat","description":"Bar in front rack; upright torso.","tags":["barbell","squat","legs"]},
+        {"name":"Lunge (Walking/Forward/Reverse)","description":"Alternating lunges, step length controlled.","tags":["legs","unilateral"]},
+        {"name":"Deadlift","description":"Barbell from floor to full hip/knee extension.","tags":["barbell","hinge","posterior"]},
+        {"name":"Overhead Squat","description":"Squat with bar locked overhead.","tags":["barbell","squat","overhead"]}
+      ]
+    },
+    {
+      "name": "Shoulder workout",
+      "exercises": [
+        {"name":"Strict Press","description":"Shoulder press without leg drive.","tags":["barbell","press","shoulders"]},
+        {"name":"Push Press","description":"Dip-drive, press to overhead lockout.","tags":["barbell","press","shoulders"]},
+        {"name":"Handstand Push-up (Strict/Kipping)","description":"Vertical pressing; head touch and full lockout.","tags":["gymnastics","inverted","push"]},
+        {"name":"Lateral Raise","description":"Dumbbell raise to shoulder height.","tags":["dumbbell","shoulders"]},
+        {"name":"Rear Delt Fly (face-down or seated)","description":"Isolation of posterior deltoid.","tags":["dumbbell","shoulders","posterior"]}
+      ]
+    },
+    {
+      "name": "Gymnastics (Bodyweight)",
+      "exercises": [
+        {"name":"Pull-up (Strict/Kipping/Butterfly)","description":"Pull chin over the bar; kipping variants use momentum.","tags":["pull","upper","bar"]},
+        {"name":"Chest-to-Bar Pull-up","description":"Pull until chest contacts bar.","tags":["pull","upper","bar"]},
+        {"name":"Bar Muscle-up","description":"From hang to support above bar.","tags":["advanced","bar","pull","push"]},
+        {"name":"Ring Muscle-up","description":"From hang to support on rings.","tags":["advanced","rings","pull","push"]},
+        {"name":"Toes-to-Bar","description":"Feet contact the bar at top.","tags":["core","bar","kip"]},
+        {"name":"Knees-to-Elbows","description":"Knees contact elbows while hanging.","tags":["core","bar"]},
+        {"name":"Pistol (Single-leg Squat)","description":"Single-leg squat to full depth.","tags":["squat","balance","legs"]},
+        {"name":"Burpee","description":"Prone to standing with a jump and clap overhead.","tags":["conditioning","full body"]},
+        {"name":"Sit-up (AbMat/GHD)","description":"Trunk flexion; GHD increases range.","tags":["core"]},
+        {"name":"Back Extension (Hip Extension)","description":"Hip extension on GHD/bench.","tags":["posterior","core"]},
+        {"name":"Rope Climb (Standard/Legless)","description":"Climb rope to a target; legless is advanced.","tags":["grip","pull","advanced"]}
+      ]
+    },
+    {
+      "name": "Olympic Lifts (Barbell)",
+      "exercises": [
+        {"name":"Snatch (Power/Squat)","description":"Floor to overhead in one motion.","tags":["oly","barbell","power"]},
+        {"name":"Clean (Power/Squat)","description":"Floor to front rack.","tags":["oly","barbell"]},
+        {"name":"Jerk (Split/Power/Push)","description":"From front rack to overhead lockout.","tags":["oly","barbell"]},
+        {"name":"Clean & Jerk","description":"Clean to rack, then jerk overhead.","tags":["oly","barbell"]}
+      ]
+    },
+    {
+      "name": "Power Lifts / Barbell Strength",
+      "exercises": [
+        {"name":"Back Squat","description":"Bar on back; below parallel.","tags":["barbell","strength"]},
+        {"name":"Front Squat","description":"Bar in front rack.","tags":["barbell","strength"]},
+        {"name":"Deadlift","description":"Floor to hip/knee extension.","tags":["barbell","hinge"]},
+        {"name":"Bench Press","description":"Press from supine.","tags":["barbell","press"]},
+        {"name":"Overhead Squat","description":"Squat with bar locked overhead.","tags":["barbell","overhead"]}
+      ]
+    },
+    {
+      "name": "Dumbbell Movements",
+      "exercises": [
+        {"name":"DB Snatch","description":"Single-dumbbell ground-to-overhead.","tags":["dumbbell","power"]},
+        {"name":"DB Clean & Jerk","description":"Single or double DB clean then jerk.","tags":["dumbbell"]},
+        {"name":"DB Thruster","description":"Front squat into push-press with DBs.","tags":["dumbbell","combo"]},
+        {"name":"DB Push Press","description":"Dip-drive, press DBs overhead.","tags":["dumbbell","press"]},
+        {"name":"Renegade Row","description":"Plank rows with DBs.","tags":["core","pull","dumbbell"]}
+      ]
+    },
+    {
+      "name": "Kettlebell Movements",
+      "exercises": [
+        {"name":"KB Swing (Russian/American)","description":"Hip hinge swing to chest/overhead.","tags":["kettlebell","hinge"]},
+        {"name":"KB Snatch","description":"Swing to overhead lockout.","tags":["kettlebell","single arm"]},
+        {"name":"KB Clean & Jerk","description":"Rack then jerk overhead.","tags":["kettlebell"]},
+        {"name":"Turkish Get-Up","description":"Floor to standing with KB overhead.","tags":["kettlebell","full body","stability"]}
+      ]
+    },
+    {
+      "name": "Monostructural / Cardio",
+      "exercises": [
+        {"name":"Running / Shuttle Runs","description":"Intervals or distances.","tags":["endurance","conditioning"]},
+        {"name":"Rowing (Erg)","description":"2k, 500m intervals, etc.","tags":["erg","conditioning"]},
+        {"name":"SkiErg","description":"Poling motion on ski erg.","tags":["erg","conditioning"]},
+        {"name":"BikeErg / Air Bike","description":"Cycling on ergometer/fan bike.","tags":["erg","conditioning"]},
+        {"name":"Jump Rope (Single/Double-Unders)","description":"Rope turns 1×/2× per jump.","tags":["skill","conditioning"]},
+        {"name":"Box Jump / Step-up","description":"Two-foot takeoff; step down.","tags":["plyometric","conditioning"]}
+      ]
+    },
+    {
+      "name": "Core / Midline",
+      "exercises": [
+        {"name":"Sit-up (AbMat)","description":"Trunk flexion with support.","tags":["core"]},
+        {"name":"GHD Sit-up","description":"Increased ROM; advanced.","tags":["core","advanced"]},
+        {"name":"Hollow Hold / Arch Hold","description":"Gymnastics bracing positions.","tags":["core","gymnastics"]},
+        {"name":"Plank Variations","description":"Front/side/weighted planks.","tags":["core","isometric"]}
+      ]
+    },
+    {
+      "name": "Plyometrics / Agility",
+      "exercises": [
+        {"name":"Burpee","description":"Ground to jump and clap overhead.","tags":["conditioning","full body"]},
+        {"name":"Lateral Hop / Skater","description":"Side-to-side power and balance.","tags":["plyometric","agility"]}
+      ]
+    },
+    {
+      "name": "Strongman / Odd-Object",
+      "exercises": [
+        {"name":"Farmer’s Carry","description":"Walk carrying heavy implements.","tags":["carry","grip"]},
+        {"name":"Sandbag Clean / Carry","description":"Ground to shoulder; carries.","tags":["odd object","power"]},
+        {"name":"Yoke Carry","description":"Walk with loaded yoke.","tags":["strongman","carry"]}
+      ]
+    }
+  ]
+}
