@@ -1,5 +1,4 @@
 $(function () {
-
   // =======================
   // State
   // =======================
@@ -12,16 +11,16 @@ $(function () {
   let intervalId = null;
   let running = false;
 
-  // GLOBAL sets (apply to the whole selected exercise sequence)
-  let globalSets = 1;       // number of rounds (sets) for the whole sequence
-  let globalSetRest = 15;   // recovery between each round (in seconds)
+  // GLOBAL sets: repeat the whole sequence N times
+  let globalSets = 1;       // how many times to repeat the whole block
+  let globalSetRest = 15;   // recovery between sets/rounds (seconds)
 
   // Defaults for new exercises
   let workDefault = 40;     // seconds
   let restDefault = 20;     // seconds (between exercises)
   const adjustStep = 5;     // +/- seconds for controls
 
-  // Elements
+  // Elements (existing)
   const $display     = $('#timer-display');
   const $phaseBadge  = $('#phase-badge');        // shows NEXT item (or a done/quote)
   const $title       = $('#current-title');
@@ -32,12 +31,9 @@ $(function () {
   const $pause = $('#pause-btn');
   const $reset = $('#reset-btn');
 
-  // Defaults UI
+  // Optional existing default displays
   const $workDefault = $('#work-default');
   const $restDefault = $('#rest-default');
-  // Global Sets UI (optional if present in HTML)
-  const $setsDefault    = $('#sets-default');     // text span to show sets count
-  const $setRestDisplay = $('#setrest-default');  // text span to show set-rest time
 
   // Pane (exercise picker)
   const $pane      = $('#exercise-pane');
@@ -113,27 +109,35 @@ $(function () {
     } catch (e) { /* ignore */ }
     return audioCtx;
   }
-  // Simple short sine beep, different pitch for 3/2/1
-  function beep(n) {
-    try {
-      const ctx = ensureAudio();
-      if (!ctx) return;
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      const freq = (n === 3) ? 880 : (n === 2) ? 660 : 520; // Hz
-      o.type = 'sine';
-      o.frequency.value = freq;
-      o.connect(g);
-      g.connect(ctx.destination);
-      const now = ctx.currentTime;
-      g.gain.setValueAtTime(0.0001, now);
-      g.gain.exponentialRampToValueAtTime(0.25, now + 0.01);
-      o.start(now);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-      o.stop(now + 0.14);
-    } catch (e) { /* ignore audio errors */ }
-  }
-  // try to unlock audio on first user gesture
+  
+  // Put these near the top (config):
+const BEEP_GAIN_BASE = 0.325;   // current peak
+const BEEP_GAIN_MULT = 1.3;    // +30%
+const BEEP_PEAK       = Math.min(1.0, BEEP_GAIN_BASE * BEEP_GAIN_MULT);
+
+// Replace your beep() with this:
+function beep(n) {
+  try {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    const freq = (n === 3) ? 880 : (n === 2) ? 660 : 520;
+    o.type = 'sine';
+    o.frequency.value = freq;
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(BEEP_PEAK, now + 0.01); // ⬅ louder by 30%
+    o.start(now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    o.stop(now + 0.14);
+  } catch (e) {}
+}
+
+
   ['click','keydown','touchstart'].forEach(evt => {
     window.addEventListener(evt, () => { try { ensureAudio(); } catch(_){} }, { once: true, passive: true });
   });
@@ -152,42 +156,21 @@ $(function () {
     if (round >= globalSets) return null;
     if (exIdx < queue.length) {
       const it = queue[exIdx];
-      return `${it.name} (Round ${round + 1}/${globalSets})`;
+      return `${it.name} (Set ${round + 1}/${globalSets})`;
     }
-    // move to first item of next round
     if (round + 1 < globalSets) {
       const it = queue[0];
-      return `${it.name} (Round ${round + 2}/${globalSets})`;
+      return `${it.name} (Set ${round + 2}/${globalSets})`;
     }
     return null;
   }
 
   function computeNextWorkoutLabel() {
     if (!queue.length) return null;
-
-    if (phase === 'idle') {
-      return nextLabelFor(0, 0);
-    }
-
-    if (phase === 'work') {
-      // if more exercises in this round, next is next exercise of same round
-      if (idx + 1 < queue.length) {
-        return nextLabelFor(roundIdx, idx + 1);
-      }
-      // else next is first exercise of next round
-      return nextLabelFor(roundIdx + 1, 0);
-    }
-
-    if (phase === 'rest') {
-      // just finished rest between exercises, next is the next exercise
-      return nextLabelFor(roundIdx, idx + 1);
-    }
-
-    if (phase === 'setrest') {
-      // between rounds, next is first exercise of next round
-      return nextLabelFor(roundIdx + 1, 0);
-    }
-
+    if (phase === 'idle')  return nextLabelFor(0, 0);
+    if (phase === 'work')  return (idx + 1 < queue.length) ? nextLabelFor(roundIdx, idx + 1) : nextLabelFor(roundIdx + 1, 0);
+    if (phase === 'rest')  return nextLabelFor(roundIdx, idx + 1);
+    if (phase === 'setrest') return nextLabelFor(roundIdx + 1, 0);
     return null;
   }
 
@@ -203,29 +186,83 @@ $(function () {
       .toggleClass('bg-light',           p === 'idle')
       .toggleClass('bg-success-subtle',  p === 'work')
       .toggleClass('bg-danger-subtle',   p === 'rest')     // between exercises
-      .toggleClass('bg-warning-subtle',  p === 'setrest'); // between rounds
+      .toggleClass('bg-warning-subtle',  p === 'setrest'); // between sets
     renderPhaseBadge();
+  }
+
+  // =======================
+  // “Repeat” wrapper UI (Apple Watch style)
+  // =======================
+  function ensureRepeatUI() {
+    if ($('#repeat-card').length) return;
+
+    const setsOptions = Array.from({ length: 20 }, (_, i) => i + 1)
+      .map(n => `<option value="${n}">${n}</option>`).join('');
+
+    const html = `
+      <div id="repeat-card" class="card bg-dark text-light border-secondary mb-2">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-uppercase small text-muted">Repeat</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <select id="sets-select" class="form-select form-select-sm bg-secondary text-light border-0" style="width:auto;">
+              ${setsOptions}
+            </select>
+            <span class="small text-muted">sets</span>
+          </div>
+        </div>
+        <div class="card-body py-2">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+              <div><span class="me-2">🏃‍♂️</span><strong>Work</strong></div>
+              <div class="small text-muted">Per exercise (set in the list below)</div>
+            </li>
+            <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
+              <div><span class="me-2">🧘</span><strong>Recovery</strong> <span class="small text-muted">(between sets)</span></div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-light btn-sm" id="setrest-dec" type="button">−</button>
+                <span id="setrest-display" class="small">${formatTime(globalSetRest)}</span>
+                <button class="btn btn-outline-light btn-sm" id="setrest-inc" type="button">+</button>
+              </div>
+            </li>
+          </ul>
+          <div class="small text-muted mt-2">This repeats the entire list of exercises below for the selected number of sets.</div>
+        </div>
+      </div>
+    `;
+    // Insert just above the builder list
+    $builderList.before(html);
+
+    // Initialize controls
+    $('#sets-select').val(String(globalSets));
+    $('#sets-select').on('change', function(){
+      globalSets = clamp(parseInt(this.value || '1', 10), 1, 99);
+      renderPhaseBadge();
+    });
+    $('#setrest-inc').on('click', () => {
+      globalSetRest = clamp(globalSetRest + adjustStep, 0, 7200);
+      $('#setrest-display').text(formatTime(globalSetRest));
+    });
+    $('#setrest-dec').on('click', () => {
+      globalSetRest = clamp(globalSetRest - adjustStep, 0, 7200);
+      $('#setrest-display').text(formatTime(globalSetRest));
+    });
   }
 
   // =======================
   // Defaults Controls (+/-)
   // =======================
   function syncDefaults() {
-    $workDefault.text(formatTime(workDefault));
-    $restDefault.text(formatTime(restDefault));
-    if ($setsDefault.length)     $setsDefault.text(String(globalSets));
-    if ($setRestDisplay.length)  $setRestDisplay.text(formatTime(globalSetRest));
+    if ($workDefault.length) $workDefault.text(formatTime(workDefault));
+    if ($restDefault.length) $restDefault.text(formatTime(restDefault));
+    if ($('#setrest-display').length) $('#setrest-display').text(formatTime(globalSetRest));
+    if ($('#sets-select').length) $('#sets-select').val(String(globalSets));
   }
   $('#work-inc').on('click', () => { workDefault = clamp(workDefault + adjustStep, 0, 7200); syncDefaults(); });
   $('#work-dec').on('click', () => { workDefault = clamp(workDefault - adjustStep, 0, 7200); syncDefaults(); });
   $('#rest-inc').on('click', () => { restDefault = clamp(restDefault + adjustStep, 0, 7200); syncDefaults(); });
   $('#rest-dec').on('click', () => { restDefault = clamp(restDefault - adjustStep, 0, 7200); syncDefaults(); });
-  // Global Sets +/- (if present in DOM)
-  $('#sets-inc').on('click',    () => { globalSets = clamp(globalSets + 1, 1, 99); syncDefaults(); renderPhaseBadge(); });
-  $('#sets-dec').on('click',    () => { globalSets = clamp(globalSets - 1, 1, 99); syncDefaults(); renderPhaseBadge(); });
-  $('#setrest-inc').on('click', () => { globalSetRest = clamp(globalSetRest + adjustStep, 0, 7200); syncDefaults(); });
-  $('#setrest-dec').on('click', () => { globalSetRest = clamp(globalSetRest - adjustStep, 0, 7200); syncDefaults(); });
-  syncDefaults();
 
   // =======================
   // Sequence Engine (GLOBAL sets/rounds)
@@ -234,9 +271,8 @@ $(function () {
     const cur = queue[idx];
     setPhase('work');
     totalSeconds = cur.work;
-    $title.text(`${cur.name} — Round ${roundIdx + 1}/${globalSets}`);
+    $title.text(`${cur.name} — Set ${roundIdx + 1}/${globalSets}`);
     renderTimer();
-    // Explain each exercise only once (on its first appearance)
     if ($auto.is(':checked') && !explainedOnce.has(cur.name)) {
       explainedOnce.add(cur.name);
       startExplain(cur.name);
@@ -248,9 +284,9 @@ $(function () {
     const cur = queue[idx];
 
     if (phase === 'work') {
-      // Finished a work segment
+      // Finished one exercise
       if (idx + 1 < queue.length) {
-        // there is a next exercise in this round
+        // more exercises in this set
         if (cur.rest > 0) {
           setPhase('rest');
           totalSeconds = cur.rest;
@@ -263,9 +299,9 @@ $(function () {
           return;
         }
       } else {
-        // last exercise in the round
+        // last exercise in the set
         if (roundIdx + 1 < globalSets) {
-          // more rounds remain
+          // more sets remain
           if (globalSetRest > 0) {
             setPhase('setrest');
             totalSeconds = globalSetRest;
@@ -273,14 +309,13 @@ $(function () {
             renderTimer();
             return;
           } else {
-            // no round rest; advance to next round
             roundIdx += 1;
             idx = 0;
             startWorkForCurrent();
             return;
           }
         } else {
-          // that was the last exercise of the last round
+          // last exercise of last set
           completeSequence();
           return;
         }
@@ -288,14 +323,14 @@ $(function () {
     }
 
     if (phase === 'rest') {
-      // between exercises -> advance to next exercise in same round
+      // between exercises -> next exercise in same set
       idx += 1;
       startWorkForCurrent();
       return;
     }
 
     if (phase === 'setrest') {
-      // between rounds -> next round starts at first exercise
+      // between sets -> first exercise of next set
       roundIdx += 1;
       idx = 0;
       startWorkForCurrent();
@@ -305,22 +340,20 @@ $(function () {
 
   function tick() {
     if (totalSeconds > 0) {
-      // Beep on 3-2-1
-      if (totalSeconds === 3 || totalSeconds === 2 || totalSeconds === 1) {
-        beep(totalSeconds);
-      }
       totalSeconds -= 1;
+      if (totalSeconds === 3 || totalSeconds === 2 || totalSeconds === 1) 
+        beep(totalSeconds);
+      
       renderTimer();
     } else {
       nextPhaseOrItem();
-      if (phase === 'idle') return; // finished
+      if (phase === 'idle') return;
     }
   }
 
   function startSequence() {
     if (running) return;
     if (!queue.length) {
-      // nudge UX
       $dropZone.addClass('drag-over');
       setTimeout(() => $dropZone.removeClass('drag-over'), 700);
       return;
@@ -369,7 +402,7 @@ $(function () {
     $title.text('Done!');
     $display.addClass('flash');
     setTimeout(() => $display.removeClass('flash'), 2500);
-    renderPhaseBadge(); // will show Done/Finished/Quote
+    renderPhaseBadge();
   }
 
   $start.on('click', startSequence);
@@ -477,7 +510,7 @@ $(function () {
   $('#clear-builder').on('click', function () {
     queue = [];
     renderBuilder();
-    resetSequence();   // also re-renders badge
+    resetSequence();
   });
 
   // Drop support
@@ -586,6 +619,8 @@ $(function () {
   // =======================
   // Init
   // =======================
+  ensureRepeatUI();  // build the Apple Watch–style “Repeat” wrapper
+  syncDefaults();
   renderTimer();
   setPhase('idle');      // also calls renderPhaseBadge()
   renderPhaseBadge();    // show first upcoming item or a done/quote
