@@ -1,6 +1,6 @@
 (() => {
-  const WORK_SEC = 5;
-  const REST_SEC = 5;
+  const WORK_SEC = 60;
+  const REST_SEC = 45;
   const STATIONS = 26; // 26*(60+45) = 45m30s
 
   // ===== YouTube search helper (avoids dead direct-video links)
