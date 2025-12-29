@@ -1,63 +1,40 @@
 (() => {
-  // $("#workout_name").addClass("gradient-text");
-  // 60s work, 45s rest, 26 stations => 45m30s
-  const WORK_SEC = 60;
-  const REST_SEC = 45;
-  const STATIONS = 26;
+  const WORK_SEC = 5;
+  const REST_SEC = 5;
+  const STATIONS = 26; // 26*(60+45) = 45m30s
 
-  // YouTube search helper (avoids dead direct-video links)
+  // ===== YouTube search helper (avoids dead direct-video links)
   function youtubeSearchUrl(exerciseName) {
-    // Add "proper form" to reduce junk results
     const q = `${exerciseName} proper form`;
     return "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
   }
 
-  // Exercise library (DB/band/pull-up bar/bodyweight only)
-  const EXERCISES = [
-    // Lower + hinge
-    { name: "DB Goblet Squat", cat: "lower", equip: "1×10kg or 1×5kg", cues: "Elbows inside knees, full-foot pressure" },
-    { name: "DB Front Squat", cat: "lower", equip: "2×10kg or 2×5kg", cues: "DBs at shoulders, ribs down" },
-    { name: "DB Romanian Deadlift", cat: "hinge", equip: "2×10kg", cues: "Hips back, soft knees, lats on" },
-    { name: "DB Suitcase Deadlift", cat: "hinge", equip: "2×10kg", cues: "Stand tall, avoid rounding" },
-    { name: "Reverse Lunges (DB)", cat: "lower", equip: "2×5kg (or 2×10kg)", cues: "12 total = 6/leg" },
-    { name: "Split Squat (DB)", cat: "lower", equip: "2×5kg", cues: "Vertical torso, knee tracks toes" },
-    { name: "Banded Good Morning", cat: "hinge", equip: "heavy band", cues: "Band at hips, hinge, squeeze glutes" },
-    { name: "Banded Lateral Walks", cat: "lower", equip: "light band", cues: "Small steps, knees out" },
-
-    // Upper push
-    { name: "Push-Ups", cat: "push", equip: "bodyweight", cues: "Ribs down, full-body tension" },
-    { name: "DB Floor Press", cat: "push", equip: "2×10kg or 2×5kg", cues: "Elbows ~45°, pause on floor" },
-    { name: "DB Push Press", cat: "push", equip: "2×5kg or 2×10kg", cues: "Dip-drive, no over-arch" },
-    { name: "DB Thrusters", cat: "power", equip: "2×5kg (or 2×10kg)", cues: "Squat → drive overhead, smooth cycle" },
-    { name: "Pike Push-Ups", cat: "push", equip: "bodyweight", cues: "Hips high, head between hands" },
-
-    // Upper pull + band
-    { name: "DB Bent-Over Rows", cat: "pull", equip: "2×10kg", cues: "Flat back, pull to pockets" },
-    { name: "Single-Arm DB Row", cat: "pull", equip: "1×10kg", cues: "Brace, pause at top" },
-    { name: "Banded Rows", cat: "pull", equip: "heavy band", cues: "Squeeze shoulder blades, control return" },
-    { name: "Band Face Pulls", cat: "pull", equip: "light band", cues: "Elbows high, pull to eyebrows" },
-    { name: "Band Pull-Aparts", cat: "pull", equip: "light band", cues: "Straight arms, squeeze mid-back" },
-
-    // Pull-up bar
-    { name: "Pull-Ups / Chin-Ups", cat: "pullup", equip: "pull-up bar", cues: "Full hang, strict if possible" },
-    { name: "Negative Pull-Ups", cat: "pullup", equip: "pull-up bar", cues: "3–5s lowering" },
-    { name: "Banded Assisted Pull-Ups", cat: "pullup", equip: "band + bar", cues: "Band on bar, knee/foot in band" },
-
-    // Metcon + core
-    { name: "Mountain Climbers", cat: "metcon", equip: "bodyweight", cues: "Strong plank, hips stable" },
-    { name: "Burpee (no push-up)", cat: "metcon", equip: "bodyweight", cues: "Step down/up if needed" },
-    { name: "High Knees (in place)", cat: "metcon", equip: "bodyweight", cues: "Tall posture, quick feet" },
-    { name: "Skater Hops", cat: "metcon", equip: "bodyweight", cues: "Soft landings, lateral power" },
-    { name: "Plank Shoulder Taps", cat: "core", equip: "bodyweight", cues: "Minimize hip sway" },
-    { name: "Hollow Hold", cat: "core", equip: "bodyweight", cues: "Low back down; shorten lever if needed" },
-    { name: "Side Plank", cat: "core", equip: "bodyweight", cues: "Long line; hips high" },
-    { name: "Dead Bug", cat: "core", equip: "bodyweight", cues: "Slow; exhale, ribs down" },
-    { name: "Glute Bridge March", cat: "core", equip: "bodyweight", cues: "Hips high, alternate feet" },
-
-    // Power
-    { name: "Single-Arm DB Snatch", cat: "power", equip: "1×10kg (or 1×5kg)", cues: "Hip drive, punch to lockout" },
-    { name: "DB Hang Clean (two DB)", cat: "power", equip: "2×10kg or 2×5kg", cues: "Jump-shrug, fast elbows" },
-  ];
+  // ===== Audio beep (Web Audio API; allowed after user gesture)
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) audioCtx = new Ctx();
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
+  }
+  function beep(freq = 880, ms = 120, vol = 0.07) {
+    if (!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(() => {
+      try { o.stop(); } catch (e) {}
+      try { o.disconnect(); g.disconnect(); } catch (e) {}
+    }, ms);
+  }
 
   // ===== helpers
   const pad2 = (n) => String(n).padStart(2, "0");
@@ -94,48 +71,112 @@
     return a;
   }
 
-  function pick(cat, n, used) {
-    const pool = EXERCISES.filter((x) => x.cat === cat && !used.has(x.name));
-    const s = shuffle(pool).slice(0, n);
-    s.forEach((x) => used.add(x.name));
-    return s;
+  function getLibrary() {
+    const lib = window.EXERCISE_LIBRARY;
+    if (!lib || !lib.pull || !lib.push || !lib.squat || !lib.hinge) {
+      // Fail-safe so UI still renders
+      return {
+        pull: [{ name: "Band Row", equip: "Band", cues: "Squeeze back" }],
+        push: [{ name: "Push-Ups", equip: "Bodyweight", cues: "Quality reps" }],
+        squat: [{ name: "DB Goblet Squat", equip: "1×10kg", cues: "Full foot" }],
+        hinge: [{ name: "DB Romanian Deadlift", equip: "2×10kg", cues: "Hinge" }],
+      };
+    }
+    return lib;
   }
 
-  function buildPlan() {
+  function modeLabel(mode) {
+    if (mode === "upper") return "Upper body";
+    if (mode === "lower") return "Lower body";
+    return "Full body";
+  }
+
+  // ===== Workout mode (persisted)
+  const MODE_PREF_KEY = "f45_mode_pref";
+  function getModePref() {
+    return safeGet(MODE_PREF_KEY) || "full";
+  }
+  function setModePref(mode) {
+    safeSet(MODE_PREF_KEY, mode);
+  }
+
+  // Build a plan that alternates category (no pull->pull back-to-back)
+  function buildPlan(mode) {
+    const lib = getLibrary();
+
+    let categories;
+    if (mode === "upper") categories = ["pull", "push"];
+    else if (mode === "lower") categories = ["squat", "hinge"];
+    else categories = ["squat", "pull", "hinge", "push"];
+
+    // Create per-category pools
+    const pools = {};
+    categories.forEach((c) => (pools[c] = shuffle(lib[c])));
+
     const used = new Set();
-    const lower = pick("lower", 6, used);
-    const hinge = pick("hinge", 4, used);
-    const pull = pick("pull", 5, used);
-    const push = pick("push", 4, used);
-    const pullup = pick("pullup", 3, used);
-    const power = pick("power", 2, used);
-    const metcon = pick("metcon", 1, used);
-    const core = pick("core", 1, used);
 
-    let plan = [].concat(lower, hinge, pull, push, pullup, power, metcon, core);
-
-    while (plan.length < STATIONS) {
-      const remaining = EXERCISES.filter((x) => !used.has(x.name));
-      if (!remaining.length) break;
-      const p = shuffle(remaining)[0];
-      used.add(p.name);
-      plan.push(p);
+    function takeFrom(cat) {
+      // Prefer unused exercises until pool exhausted; then allow reuse
+      for (const item of pools[cat]) {
+        if (!used.has(item.name)) {
+          used.add(item.name);
+          return item;
+        }
+      }
+      pools[cat] = shuffle(lib[cat]);
+      return pools[cat][0];
     }
 
-    plan = shuffle(plan).slice(0, STATIONS);
-    return plan.map((x, i) => ({
-      station: i + 1,
-      name: x.name,
-      equip: x.equip,
-      cues: x.cues,
-      // Store as a search URL so it never goes "unavailable"
-      url: youtubeSearchUrl(x.name),
-    }));
+    const plan = [];
+    let lastCat = null;
+
+    // randomize starting position to add variety
+    let idx = Math.floor(Math.random() * categories.length);
+
+    for (let i = 0; i < STATIONS; i++) {
+      // choose category different from last
+      let cat = categories[idx % categories.length];
+      if (cat === lastCat) cat = categories[(idx + 1) % categories.length];
+      if (cat === lastCat && categories.length > 1) {
+        const alt = categories.filter((c) => c !== lastCat);
+        cat = alt[Math.floor(Math.random() * alt.length)];
+      }
+
+      const item = takeFrom(cat);
+
+      plan.push({
+        station: i + 1,
+        category: cat,
+        name: item.name,
+        equip: item.equip || "",
+        cues: item.cues || "",
+        url: youtubeSearchUrl(item.name),
+      });
+
+      lastCat = cat;
+      idx++;
+    }
+
+    // extra safeguard: ensure no adjacent duplicates
+    for (let i = 1; i < plan.length; i++) {
+      if (plan[i].category === plan[i - 1].category) {
+        for (let j = i + 1; j < plan.length; j++) {
+          if (plan[j].category !== plan[i - 1].category && plan[j].category !== plan[i].category) {
+            const tmp = plan[i];
+            plan[i] = plan[j];
+            plan[j] = tmp;
+            break;
+          }
+        }
+      }
+    }
+
+    return plan;
   }
 
-  function getOrCreateDailyPlan(forceNew = false) {
+  function getOrCreateDailyPlan(mode, forceNew = false) {
     const key = todayKey();
-    const storageKey = "f45_plan_" + key;
+    const storageKey = `f45_plan_${key}_${mode}`;
 
     if (!forceNew) {
       const raw = safeGet(storageKey);
@@ -143,26 +184,30 @@
         try {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length) {
-            // Ensure old stored plans also get search URLs
-            const fixed = parsed.map((it) => ({
-              ...it,
-              url: it.url && it.url.includes("youtube.com/results")
+            const fixed = parsed.map((it, idx) => ({
+              station: it.station ?? (idx + 1),
+              category: it.category || "pull",
+              name: it.name,
+              equip: it.equip || "",
+              cues: it.cues || "",
+              url: (it.url && it.url.includes("youtube.com/results"))
                 ? it.url
                 : youtubeSearchUrl(it.name || "exercise"),
             }));
-            return { key, storageKey, plan: fixed, locked: true };
+            return { key, storageKey, plan: fixed, locked: true, mode };
           }
         } catch (e) {}
       }
     }
 
-    const plan = buildPlan();
+    const plan = buildPlan(mode);
     safeSet(storageKey, JSON.stringify(plan));
-    return { key, storageKey, plan, locked: true };
+    return { key, storageKey, plan, locked: true, mode };
   }
 
   // ===== DOM
   const badgeDate = document.getElementById("badgeDate");
+  const badgeMode = document.getElementById("badgeMode");
   const badgeLocked = document.getElementById("badgeLocked");
   const badgeTotal = document.getElementById("badgeTotal");
   const stationsBody = document.getElementById("stationsBody");
@@ -180,9 +225,12 @@
   const btnPrev = document.getElementById("btnPrev");
   const btnNext = document.getElementById("btnNext");
   const btnReroll = document.getElementById("btnReroll");
-
-  const scrollBox = document.querySelector(".stations-scroll");
   const btnToggleCompleted = document.getElementById("btnToggleCompleted");
+
+  const btnModeFull = document.getElementById("btnModeFull");
+  const btnModeUpper = document.getElementById("btnModeUpper");
+  const btnModeLower = document.getElementById("btnModeLower");
+
   let showCompleted = false;
 
   function toast(msg) {
@@ -193,64 +241,135 @@
     window.__toastT = setTimeout(() => t.classList.remove("show"), 1600);
   }
 
+  function categoryLabel(cat) {
+    const map = { pull: "PULL", push: "PUSH", squat: "SQUAT", hinge: "HINGE" };
+    return map[cat] || String(cat).toUpperCase();
+  }
+
+  function setModeButtons(mode) {
+    const all = [btnModeFull, btnModeUpper, btnModeLower].filter(Boolean);
+    all.forEach((b) => b.classList.remove("mode-active"));
+    if (mode === "upper") btnModeUpper?.classList.add("mode-active");
+    else if (mode === "lower") btnModeLower?.classList.add("mode-active");
+    else btnModeFull?.classList.add("mode-active");
+  }
+
+  // Render: Exercise row then Recovery row (work -> recovery -> work)
   function renderPlan(info) {
     badgeDate.textContent = niceDate();
+    if (badgeMode) badgeMode.textContent = "Mode: " + modeLabel(info.mode);
     badgeLocked.textContent = "Locked: " + info.key;
     badgeTotal.textContent = "Total: " + mmss(STATIONS * (WORK_SEC + REST_SEC));
 
     stationsBody.innerHTML = "";
     info.plan.forEach((it, idx) => {
-      const tr = document.createElement("tr");
-      tr.dataset.idx = String(idx);
-      tr.innerHTML = `
+      // WORK row
+      const trWork = document.createElement("tr");
+      trWork.dataset.station = String(idx);
+      trWork.dataset.kind = "work";
+      trWork.innerHTML = `
         <td class="text-secondary fw-semibold">#${it.station}</td>
         <td>
-          <div id="workout_name" class="fw-semibold">${it.name}</div>
-          <div class="text-secondary small">${it.equip}</div>
+          <div class="fw-semibold">${it.name}</div>
+          <div class="text-secondary small">${categoryLabel(it.category)} • ${it.equip}</div>
         </td>
         <td class="d-none d-md-table-cell">
-          <div class="text-secondary small" style="color: #f0eee9 !important;">${it.cues}</div>
+          <div class="text-secondary small">${it.cues}</div>
         </td>
         <td class="text-end">
           <a class="btn btn-outline-light btn-sm" href="${it.url}" target="_blank" rel="noopener">Watch</a>
         </td>
       `;
-      tr.addEventListener("click", () => jumpToStation(idx));
-      stationsBody.appendChild(tr);
+      trWork.addEventListener("click", () => jumpToStation(idx, "work"));
+      stationsBody.appendChild(trWork);
+
+      // RECOVERY row
+      const trRest = document.createElement("tr");
+      trRest.className = "row-recovery";
+      trRest.dataset.station = String(idx);
+      trRest.dataset.kind = "rest";
+      trRest.innerHTML = `
+        <td class="text-secondary fw-semibold">↳</td>
+        <td>
+          <div class="fw-semibold">Recovery</div>
+          <div class="text-secondary small">${REST_SEC}s • breathe + set up</div>
+        </td>
+        <td class="d-none d-md-table-cell">
+          <div class="text-secondary small">Shake out, sip water, prep DB/band, re-focus.</div>
+        </td>
+        <td class="text-end">
+          <span class="text-secondary small">—</span>
+        </td>
+      `;
+      trRest.addEventListener("click", () => jumpToStation(idx, "rest"));
+      stationsBody.appendChild(trRest);
     });
   }
-  
-  
-  function setRowHighlight(stationIndex) {
+
+  // function setRowHighlight(stationIndex, kind) {
+  //   const rows = stationsBody.querySelectorAll("tr");
+  //   rows.forEach((r) => r.classList.remove("row-active"));
+  //   if (stationIndex < 0) return;
+
+  //   const target = Array.from(rows).find(
+  //     (r) => Number(r.dataset.station) === stationIndex && r.dataset.kind === kind
+  //   );
+  //   if (target) {
+  //     target.classList.add("row-active");
+  //     target.scrollIntoView({ block: "center", behavior: "smooth" });
+  //     // console.log(target);
+  //     // $(".row-active").scrollIntoView({ block: "center", behavior: "smooth" });
+  //   }
+  // }
+
+    function setRowHighlight(stationIndex, kind) {
+    // Only auto-scroll when the active target changes (prevents jitter every second)
+    if (!window.__activeRowKey) window.__activeRowKey = "";
+    const key = `${stationIndex}:${kind}`;
+
     const rows = stationsBody.querySelectorAll("tr");
-    rows.forEach(r => r.classList.remove("row-active"));
+    rows.forEach((r) => r.classList.remove("row-active"));
+    if (stationIndex < 0) return;
 
-    if (stationIndex >= 0 && stationIndex < rows.length) {
-      const row = rows[stationIndex];
-      row.classList.add("row-active");
-
-      // Scroll the table box to keep the active row in view
-      row.scrollIntoView({ block: "center", behavior: "smooth" });
+    const target = Array.from(rows).find(
+      (r) => Number(r.dataset.station) === stationIndex && r.dataset.kind === kind
+      
+    );
+    if (target) {
+      target.classList.add("row-active");
+      // target.scrollIntoView({ block: "center", behavior: "smooth" });
     }
   }
 
+  function smallerHeader() {
+    if ($("*").find(".row-active").length > 0) {
+      alert("test");
+      $("#header_section").addClass("lower_size");
+    }
+  }
+
+  smallerHeader();
+
   function updateRowStates() {
-  const rows = stationsBody.querySelectorAll("tr");
-  rows.forEach((row, idx) => {
-      const isDone = idx < stationIdx;
+    const rows = stationsBody.querySelectorAll("tr");
+    rows.forEach((row) => {
+      const s = Number(row.dataset.station);
+      const isDone = s < stationIdx; // done only when station fully passed
       row.classList.toggle("row-done", isDone);
       row.classList.toggle("row-hidden", isDone && !showCompleted);
     });
   }
-  
 
   // ===== Timer state
-  let dailyInfo = getOrCreateDailyPlan(false);
+  let currentMode = getModePref();
+  setModeButtons(currentMode);
+
+  let dailyInfo = getOrCreateDailyPlan(currentMode, false);
   let PLAN = dailyInfo.plan;
 
   let mode = "stopped"; // stopped | running | paused
-  let phase = "work"; // work | rest
-  let stationIdx = 0;
+  let phase = "work";   // work | rest
+  let stationIdx = 0;   // station index (work stations only)
   let remaining = WORK_SEC;
   let tickHandle = null;
 
@@ -265,22 +384,20 @@
       pillPhase.className = "pill";
       timerText.textContent = "00:00";
       timerPhaseText.textContent = "";
-      currentExerciseLine.innerHTML = `Next: <b>${ex.name}</b> · ${WORK_SEC}s work / ${REST_SEC}s rest`;
-      setRowHighlight(-1);
+      currentExerciseLine.innerHTML = `Next: <b>${ex.name}</b> · ${WORK_SEC}s work / ${REST_SEC}s recovery`;
+      setRowHighlight(-1, "work");
       updateRowStates();
-
     } else {
       const isWork = phase === "work";
-      pillPhase.textContent = isWork ? "WORK" : "REST";
+      pillPhase.textContent = isWork ? "WORK" : "RECOVER";
       pillPhase.className = isWork ? "pill pill-work" : "pill pill-rest";
       timerText.textContent = mmss(remaining);
-      timerPhaseText.textContent = isWork ? "Go" : "Breathe";
+      timerPhaseText.textContent = isWork ? "Go" : "Reset";
       currentExerciseLine.innerHTML = isWork
         ? `Now: <b>${ex.name}</b> · ${ex.equip}`
-        : `Rest · Up next: <b>${nextExerciseName()}</b>`;
-      setRowHighlight(stationIdx);
+        : `Recover · Up next: <b>${nextExerciseName()}</b>`;
+      setRowHighlight(stationIdx, isWork ? "work" : "rest");
       updateRowStates();
-
     }
 
     btnStart.disabled = mode === "running";
@@ -302,6 +419,7 @@
   }
 
   function startTimer() {
+    ensureAudio();
     if (mode === "running") return;
 
     if (mode === "stopped") {
@@ -318,12 +436,19 @@
       remaining -= 1;
 
       if (remaining <= 0) {
+        // beep at end of BOTH work and recovery
+        if (phase === "work") beep(660, 120, 0.075);   // work end -> enter recovery
+        else beep(880, 120, 0.075);                    // recovery end -> start next work
+
         if (phase === "work") {
           phase = "rest";
           remaining = REST_SEC;
         } else {
           stationIdx += 1;
           if (stationIdx >= STATIONS) {
+            // finish: double beep
+            beep(988, 110, 0.085);
+            setTimeout(() => beep(784, 170, 0.085), 140);
             toast("Workout complete ✅");
             stopTimer(true);
             return;
@@ -332,22 +457,42 @@
           remaining = WORK_SEC;
         }
       }
+
       updateUI();
     }, 1000);
   }
 
   function togglePause() {
+    ensureAudio();
     if (mode === "stopped") return;
     mode = mode === "running" ? "paused" : "running";
     updateUI();
   }
 
-  function jumpToStation(idx) {
+  function jumpToStation(idx, kind = "work") {
     stationIdx = Math.max(0, Math.min(STATIONS - 1, idx));
-    phase = "work";
-    remaining = WORK_SEC;
+    if (kind === "rest") {
+      phase = "rest";
+      remaining = REST_SEC;
+    } else {
+      phase = "work";
+      remaining = WORK_SEC;
+    }
     updateUI();
-    toast(`Jumped to station #${stationIdx + 1}`);
+    toast(`Jumped to station #${stationIdx + 1} (${kind === "rest" ? "recovery" : "work"})`);
+  }
+
+  function loadMode(modeToLoad, reroll = false) {
+    currentMode = modeToLoad;
+    setModePref(currentMode);
+    setModeButtons(currentMode);
+
+    dailyInfo = getOrCreateDailyPlan(currentMode, reroll);
+    PLAN = dailyInfo.plan;
+
+    renderPlan(dailyInfo);
+    stopTimer(true);
+    toast(`Loaded: ${modeLabel(currentMode)}${reroll ? " (rerolled)" : ""}`);
   }
 
   // ===== init + events
@@ -359,21 +504,30 @@
   btnPause.addEventListener("click", togglePause);
   btnStop.addEventListener("click", () => stopTimer(true));
   btnReset.addEventListener("click", () => stopTimer(true));
-  btnPrev.addEventListener("click", () => jumpToStation(stationIdx - 1));
-  btnNext.addEventListener("click", () => jumpToStation(stationIdx + 1));
+  btnPrev.addEventListener("click", () => jumpToStation(stationIdx - 1, "work"));
+  btnNext.addEventListener("click", () => {
+    if (phase === "work") {
+      jumpToStation(stationIdx, "rest");
+    } else {
+      jumpToStation(stationIdx + 1, "work");
+    }
+  });
+
+
+  btnReroll.addEventListener("click", () => loadMode(currentMode, true));
+
   btnToggleCompleted?.addEventListener("click", () => {
     showCompleted = !showCompleted;
     btnToggleCompleted.textContent = showCompleted ? "Hide completed" : "Show completed";
     updateRowStates();
   });
 
+  btnModeFull?.addEventListener("click", () => loadMode("full", false));
+  btnModeUpper?.addEventListener("click", () => loadMode("upper", false));
+  btnModeLower?.addEventListener("click", () => loadMode("lower", false));
 
-  btnReroll.addEventListener("click", () => {
-    dailyInfo = getOrCreateDailyPlan(true);
-    PLAN = dailyInfo.plan;
-    renderPlan(dailyInfo);
-    stopTimer(true);
-    toast("New plan locked for today 🎲");
-  });
+  // Resume audio on first user gesture (helps on iOS)
+  window.addEventListener("pointerdown", () => ensureAudio(), { once: true });
+
+  $(".timer-display").addClass("hover-effect");
 })();
-

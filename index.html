@@ -11,42 +11,57 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="./css/f45_daily_workout_split.css" />
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </head>
 
 <body class="bg-black">
-  <div class="container py-3 py-md-4">
+  <div class="container-fluid mx-auto my-3 w-75">
+<!-- Header -->
+<div id="header_section" class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3 lower_size">
+  <div>
+    <h1 class="h3 mb-1 fw-semibold">Daily F45-Style Full-Body</h1>
+    <div class="text-secondary small">
+      60s work • 45s rest • ~45 min total • Equipment: 2×5kg DB, 2×10kg DB, pull-up bar, light + heavy band
+    </div>
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      <span class="badge rounded-pill text-bg-primary" id="badgeDate"></span>
+      <span class="badge rounded-pill text-bg-secondary" id="badgeMode"></span>
+      <span class="badge rounded-pill text-bg-secondary" id="badgeLocked"></span>
+      <span class="badge rounded-pill text-bg-secondary" id="badgeTotal"></span>
+    </div>
+  </div>
 
-    <!-- Header -->
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
-      <div>
-        <h1 class="h3 mb-1 fw-semibold">Daily F45-Style Full-Body</h1>
-        <div class="text-secondary small">
-          60s work • 45s rest • ~45 min total • Equipment: 2×5kg DB, 2×10kg DB, pull-up bar, light + heavy band
-        </div>
-        <div class="mt-2 d-flex flex-wrap gap-2">
-          <span class="badge rounded-pill text-bg-primary" id="badgeDate"></span>
-          <span class="badge rounded-pill text-bg-secondary" id="badgeLocked"></span>
-          <span class="badge rounded-pill text-bg-secondary" id="badgeTotal"></span>
-        </div>
-      </div>
-
-      <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
-        <button class="btn btn-outline-light btn-sm" id="btnReroll" type="button"
-          title="Generate a different plan for today (overrides lock)">🎲 Reroll Today</button>
-        <button class="btn btn-outline-light btn-sm" id="btnReset" type="button">↺ Reset</button>
+  <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+    <div class="d-flex align-items-center gap-1 workout-mode" role="group" aria-label="Workout type">
+      <div class="row">
+        <div class="col"><button class="btn btn-outline-light btn-md mode-btn w-100 h-100" id="btnModeFull"
+            type="button" data-mode="full">Full body</button></div>
+        <div class="col"><button class="btn btn-outline-light btn-md mode-btn w-100 h-100" id="btnModeUpper"
+            type="button" data-mode="upper">Upper body</button></div>
+        <div class="col"><button class="btn btn-outline-light btn-md mode-btn w-100 h-100" id="btnModeLower"
+            type="button" data-mode="lower">Lower body</button></div>
       </div>
     </div>
+    <button class="btn btn-outline-light btn-sm" id="btnReroll" type="button"
+      title="Generate a different plan for today (overrides lock)">🎲 Reroll Today</button>
+    <button class="btn btn-outline-light btn-sm" id="btnReset" type="button">↺ Reset</button>
+  </div>
+</div>
 
-    <!-- Timer Card -->
-    <div class="card glass-card border-0 mb-3 timer-sticky">
-      <div class="card-body">
-        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
-          <div class="flex-grow-1">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-              <span class="pill" id="pillPhase">READY</span>
-              <span class="text-secondary small" id="stationLabel">Station 0/0</span>
-            </div>
+<!-- Timer Card -->
+<div class="card glass-card border-0 mb-3 timer-sticky">
+  <div class="card-body">
+    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+      <div class="row mx-auto">
 
+        <div class="flex-grow-1 mx-auto">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="pill" id="pillPhase">READY</span>
+            <span class="text-secondary small" id="stationLabel">Station 0/0</span>
+          </div>
+
+          <div class="col">
             <div class="timer-display" aria-live="polite">
               <span class="timer-mmss" id="timerText">00:00</span>
               <span class="timer-phase ms-2" id="timerPhaseText"></span>
@@ -55,29 +70,41 @@
             <div class="text-secondary small mt-2" id="currentExerciseLine">
               Press <b>Start</b> to begin.
             </div>
-          </div>
 
-          <div class="d-flex flex-wrap gap-2">
+          </div>
+          <div class="col"></div>
+          <div id="start_stop_buttons" class="d-flex flex-wrap gap-2 mx-auto col-sm-12 lower_size">
             <button class="btn btn-primary px-4" id="btnStart" type="button">Start</button>
             <button class="btn btn-outline-light px-4" id="btnPause" type="button" disabled>Pause</button>
             <button class="btn btn-outline-danger px-4" id="btnStop" type="button" disabled>Stop</button>
           </div>
         </div>
-
-        <hr class="my-3 opacity-25">
-
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-          <button class="btn btn-outline-light btn-sm" id="btnPrev" type="button">← Prev</button>
-          <button class="btn btn-outline-light btn-sm" id="btnNext" type="button">Next →</button>
-          <div class="text-secondary small ms-auto">
-            Tip: Work at ~RPE 7–8. Keep clean form; scale by tempo, not by rushing.
-          </div>
-        </div>
       </div>
     </div>
+  </div>
+
+
+  <hr class="my-3 opacity-25">
+
+  <div class="d-flex flex-wrap gap-2 align-items-center mx-auto col-sm-10 w-50 text-center">
+    <div class="row">
+      <div class="col">
+        <button class="btn btn-outline-light btn-sm" id="btnPrev" type="button">← Prev</button>
+      </div>
+      <div class="col">
+        <button class="btn btn-outline-light btn-sm" id="btnNext" type="button">Next →</button>
+      </div>
+      <div class="text-secondary small ms-auto">
+        Tip: Work at ~RPE 7–8. Keep clean form; scale by tempo, not by rushing.
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
 
     <!-- Workout List -->
-    <div class="card border-0 glass-card">
+    <div class="card border-0 glass-card mx-5">
       <div class="card-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
           <div>
@@ -91,7 +118,7 @@
         </div>
 
         <div class="table-responsive stations-scroll">
-          <table class="table table-dark table-hover align-middle mb-0 stations-table">
+          <table class="table table-dark align-middle mb-0 stations-table">
             <thead>
               <tr>
                 <th style="width:86px;">#</th>
@@ -114,10 +141,13 @@
 
   <div class="toast" id="toast"></div>
 
+    <!-- Data -->
+  <script src="./exercises_library.js"></script>
+
   <!-- App JS (no jQuery needed) -->
   <script src="./js/f45_daily_workout_split.js"></script>
 
-  <!-- Bootstrap JS -->
+<!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
