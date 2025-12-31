@@ -91,7 +91,6 @@ html * {
   transform: scale(1.05);
   transition: transform 0.3s;
   background-color: #c9d3c0;
-  backdrop-filter: blur(1px);
   color: #111;
   width: auto;
 }
@@ -107,7 +106,6 @@ html * {
   color: #000 !important;
   margin: 5px;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
   /* filter: blur(10px); */
 }
 .lower_size {
