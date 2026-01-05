@@ -1,6 +1,6 @@
 (() => {
   let WORK_SEC = 60;
-  let REST_SEC = 45;
+  let REST_SEC = 60;
   let STATIONS = 26; // 26*(60+45) = 45m30s
 
   function numericOnly() {
@@ -17,12 +17,36 @@
 
   }
 
-  $("#work_seconds, #recovery_seconds").on("input", function() {
+  $("#work_seconds").on("input", function() {
     checkMaxlength.call(this);
     numericOnly.call(this);
     WORK_SEC = Number($(this).val());
-
   });
+
+  $("#recovery_seconds").on("input", function() {
+    checkMaxlength.call(this);
+    numericOnly.call(this);
+    REST_SEC = Number($(this).val());
+  });
+
+  $("#number_of_stations").on("input", function() {
+  checkMaxlength.call(this);
+  numericOnly.call(this);
+
+  // clamp to your HTML min/max (your HTML max is 30)
+  const n = Math.max(5, Math.min(30, Number($(this).val()) || 26));
+  $(this).val(n);
+  STATIONS = n;
+
+  // Rebuild TODAY’s plan to match the new station count
+  dailyInfo = getOrCreateDailyPlan(currentMode, true); // forceNew = true
+  PLAN = dailyInfo.plan;
+
+  renderPlan(dailyInfo);
+  stopTimer(true); // resets timer + stationIdx safely
+  toast(`Stations set to ${STATIONS} ✅`);
+});
+
 
   // ===== YouTube search helper (avoids dead direct-video links)
   function youtubeSearchUrl(exerciseName) {
