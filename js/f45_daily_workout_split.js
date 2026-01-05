@@ -1,7 +1,7 @@
 (() => {
   let WORK_SEC = 60;
   let REST_SEC = 60;
-  let STATIONS = 26; // 26*(60+45) = 45m30s
+  let STATIONS = 20; // 26*(60+45) = 45m30s
 
   function numericOnly() {
     var regex = /[^0-9\s]+/g;
@@ -34,7 +34,7 @@
   numericOnly.call(this);
 
   // clamp to your HTML min/max (your HTML max is 30)
-  const n = Math.max(5, Math.min(30, Number($(this).val()) || 26));
+  const n = Math.max(1, Math.min(30, Number($(this).val()) || 20));
   $(this).val(n);
   STATIONS = n;
 
