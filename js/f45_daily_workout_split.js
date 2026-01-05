@@ -1,7 +1,28 @@
 (() => {
-  const WORK_SEC = 60;
-  const REST_SEC = 45;
-  const STATIONS = 26; // 26*(60+45) = 45m30s
+  let WORK_SEC = 60;
+  let REST_SEC = 45;
+  let STATIONS = 26; // 26*(60+45) = 45m30s
+
+  function numericOnly() {
+    var regex = /[^0-9\s]+/g;
+    $(this).val($(this).val().replace(regex, ''));
+  } 
+
+  function checkMaxlength() {
+    let val = $(this).val();
+
+    if (val.length > 4 || val > 1000) {
+      $(this).val(val.slice(0, -1));
+    }
+
+  }
+
+  $("#work_seconds, #recovery_seconds").on("input", function() {
+    checkMaxlength.call(this);
+    numericOnly.call(this);
+    WORK_SEC = Number($(this).val());
+
+  });
 
   // ===== YouTube search helper (avoids dead direct-video links)
   function youtubeSearchUrl(exerciseName) {
@@ -370,7 +391,8 @@
   let mode = "stopped"; // stopped | running | paused
   let phase = "work";   // work | rest
   let stationIdx = 0;   // station index (work stations only)
-  let remaining = WORK_SEC;
+  let remaining = $("#work_seconds").val(); //WORK_SEC;
+  
   let tickHandle = null;
 
   const nextExerciseName = () => PLAN[Math.min(stationIdx + 1, STATIONS - 1)]?.name || "—";
@@ -424,7 +446,8 @@
 
     if (mode === "stopped") {
       phase = "work";
-      remaining = WORK_SEC;
+      // remaining = WORK_SEC;
+      remaining = $("#work_seconds").val() ? parseInt($("#work_seconds").val(), 10) : WORk_SEC;
     }
     mode = "running";
     updateUI();
@@ -442,7 +465,8 @@
 
         if (phase === "work") {
           phase = "rest";
-          remaining = REST_SEC;
+          // remaining = REST_SEC;
+          remaining = $("#recovery_seconds").val() ? parseInt($("#recovery_seconds").val(), 10) : REST_SEC;
         } else {
           stationIdx += 1;
           if (stationIdx >= STATIONS) {
@@ -473,10 +497,12 @@
     stationIdx = Math.max(0, Math.min(STATIONS - 1, idx));
     if (kind === "rest") {
       phase = "rest";
-      remaining = REST_SEC;
+      // remaining = REST_SEC;
+      remaining = $("#recovery_seconds").val() ? parseInt($("#recovery_seconds").val(), 10) : REST_SEC;
     } else {
       phase = "work";
-      remaining = WORK_SEC;
+      // remaining = WORK_SEC;
+      remaining = $("#work_seconds").val() ? parseInt($("#work_seconds").val(), 10) : WORK_SEC;
     }
     updateUI();
     toast(`Jumped to station #${stationIdx + 1} (${kind === "rest" ? "recovery" : "work"})`);

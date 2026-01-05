@@ -16,7 +16,7 @@
 </head>
 
 <body class="bg-black">
-  <div class="container-fluid mx-auto my-3 w-75">
+  <div class="container-fluid mx-auto d-grid">
 <!-- Header -->
 <div id="header_section" class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3 lower_size">
   <div>
@@ -34,7 +34,7 @@
 
   <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
     <div class="d-flex align-items-center gap-1 workout-mode" role="group" aria-label="Workout type">
-      <div class="row">
+      <div class="row mx-auto">
         <div class="col"><button class="btn btn-outline-light btn-md mode-btn w-100 h-100" id="btnModeFull"
             type="button" data-mode="full">Full body</button></div>
         <div class="col"><button class="btn btn-outline-light btn-md mode-btn w-100 h-100" id="btnModeUpper"
@@ -43,9 +43,12 @@
             type="button" data-mode="lower">Lower body</button></div>
       </div>
     </div>
-    <button class="btn btn-outline-light btn-sm" id="btnReroll" type="button"
-      title="Generate a different plan for today (overrides lock)">🎲 Reroll Today</button>
-    <button class="btn btn-outline-light btn-sm" id="btnReset" type="button">↺ Reset</button>
+    <div class="row mx-auto">
+      <div class="col"><button class="btn btn-outline-light btn-sm" id="btnReroll" type="button"
+      title="Generate a different plan for today (overrides lock)">🎲 Reroll Today</button></div>
+    <div class="col"><button class="btn btn-outline-light btn-sm" id="btnReset" type="button">↺ Reset</button></div>
+    
+    </div>
   </div>
 </div>
 
@@ -53,24 +56,46 @@
 <div class="card glass-card border-0 mb-3 timer-sticky">
   <div class="card-body">
     <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
-      <div class="row mx-auto">
-
-        <div class="flex-grow-1 mx-auto">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <span class="pill" id="pillPhase">READY</span>
-            <span class="text-secondary small" id="stationLabel">Station 0/0</span>
-          </div>
-
+      <div class="container-fluid">
+        <div class="row mx-auto mb-2">
           <div class="col">
-            <div class="timer-display" aria-live="polite">
-              <span class="timer-mmss" id="timerText">00:00</span>
-              <span class="timer-phase ms-2" id="timerPhaseText"></span>
-            </div>
+            <label for="work_seconds" class="form-label text-wrap mx-4">Timer for work (seconds)</label>
+            <input type="number" class="form-control form-control-sm text-center" id="work_seconds" aria-label="Work" min="5"
+              max="600" value="60" />
+          </div>
+          <div class="col">
+            <label for="work_seconds" class="form-label text-wrap mx-4">Timer for recovery (seconds)</label>
+            <input type="number" class="form-control form-control-sm text-center" id="recovery_seconds" aria-label="Recovery"
+              min="5" max="600" value="60" />
+          </div>
+          <div class="col">
+            <label for="work_seconds" class="form-label text-wrap mx-4">Number of Stations</label>
+            <input type="number" class="form-control form-control-sm text-center" id="number_of_stations" aria-label="Stations"
+              min="5" max="30" value="26" />
+          </div>
+        </div>
 
-            <div class="text-secondary small mt-2" id="currentExerciseLine">
-              Press <b>Start</b> to begin.
+        <div class="row mx-auto mb-2">
+          <div class="flex-grow-1 mx-auto">
+            <div class="col">
+      
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="pill" id="pillPhase">READY</span>
+                <span class="text-secondary small" id="stationLabel">Station 0/0</span>
+              </div>
             </div>
-
+      
+      
+            <div class="col">
+              <div class="timer-display" aria-live="polite">
+                <span class="timer-mmss" id="timerText">00:00</span>
+                <span class="timer-phase ms-2" id="timerPhaseText"></span>
+              </div>
+      
+              <div class="text-secondary small mt-2" id="currentExerciseLine">
+                Press <b>Start</b> to begin.
+              </div>
+            </div>
           </div>
           <div class="col"></div>
           <div id="start_stop_buttons" class="d-flex flex-wrap gap-2 mx-auto col-sm-12 lower_size">
@@ -79,24 +104,30 @@
             <button class="btn btn-outline-danger px-4" id="btnStop" type="button" disabled>Stop</button>
           </div>
         </div>
-      </div>
+
+        </div>
+
     </div>
-  </div>
+    </div>
+    </div>
 
 
   <hr class="my-3 opacity-25">
 
-  <div class="d-flex flex-wrap gap-2 align-items-center mx-auto col-sm-10 w-50 text-center">
+  <div class="container flex-wrap gap-2 align-items-center mx-auto text-center col-lg-12 wd-100">
     <div class="row">
       <div class="col">
         <button class="btn btn-outline-light btn-sm" id="btnPrev" type="button">← Prev</button>
       </div>
       <div class="col">
-        <button class="btn btn-outline-light btn-sm" id="btnNext" type="button">Next →</button>
-      </div>
       <div class="text-secondary small ms-auto">
         Tip: Work at ~RPE 7–8. Keep clean form; scale by tempo, not by rushing.
       </div>
+      </div>
+      <div class="col">
+        <button class="btn btn-outline-light btn-sm" id="btnNext" type="button">Next →</button>
+      </div>
+      
     </div>
   </div>
   </div>
