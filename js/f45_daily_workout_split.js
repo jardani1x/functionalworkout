@@ -1,6 +1,6 @@
 (() => {
   let WORK_SEC = 60;
-  let REST_SEC = 60;
+  let REST_SEC = 45;
   let STATIONS = 20; // 26*(60+45) = 45m30s
 
   function numericOnly() {
@@ -34,7 +34,7 @@
   numericOnly.call(this);
 
   // clamp to your HTML min/max (your HTML max is 30)
-  const n = Math.max(1, Math.min(30, Number($(this).val()) || 20));
+  const n = Math.max(1, Math.min(30, Number($(this).val())));
   $(this).val(n);
   STATIONS = n;
 
@@ -380,6 +380,7 @@
       (r) => Number(r.dataset.station) === stationIndex && r.dataset.kind === kind
       
     );
+
     if (target) {
       target.classList.add("row-active");
       // target.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -388,7 +389,6 @@
 
   function smallerHeader() {
     if ($("*").find(".row-active").length > 0) {
-      alert("test");
       $("#header_section").addClass("lower_size");
     }
   }
@@ -420,6 +420,8 @@
   let tickHandle = null;
 
   const nextExerciseName = () => PLAN[Math.min(stationIdx + 1, STATIONS - 1)]?.name || "—";
+  const nextExerciseEquip = () => PLAN[Math.min(stationIdx + 1, STATIONS - 1)]?.equip || "—";
+  const nextExerciseCues = () => PLAN[Math.min(stationIdx + 1, STATIONS - 1)]?.cues || "—";
 
   function updateUI() {
     stationLabel.textContent = `Station ${stationIdx + 1}/${STATIONS}`;
@@ -438,10 +440,10 @@
       pillPhase.textContent = isWork ? "WORK" : "RECOVER";
       pillPhase.className = isWork ? "pill pill-work" : "pill pill-rest";
       timerText.textContent = mmss(remaining);
-      timerPhaseText.textContent = isWork ? "Go" : "Reset";
+      timerPhaseText.innerHTML = isWork ? `` : "Reset";
       currentExerciseLine.innerHTML = isWork
-        ? `Now: <b>${ex.name}</b> · ${ex.equip}`
-        : `Recover · Up next: <b>${nextExerciseName()}</b>`;
+        ? `<span class="currentExercise">Now: <b>${ex.name}</b> · ${ex.equip} - ${nextExerciseCues()}</span>`
+        : `<span class="nextExercise">Recover · Up next: <b>${nextExerciseName()}</b> --- ${nextExerciseEquip()} --- ${nextExerciseCues()}</span>`;
       setRowHighlight(stationIdx, isWork ? "work" : "rest");
       updateRowStates();
     }
@@ -453,6 +455,7 @@
   }
 
   function stopTimer(resetToStart = true) {
+    $(".timer-settings-row").show();
     if (tickHandle) {
       clearInterval(tickHandle);
       tickHandle = null;
@@ -465,6 +468,7 @@
   }
 
   function startTimer() {
+    $(".timer-settings-row").hide();
     ensureAudio();
     if (mode === "running") return;
 
@@ -511,6 +515,7 @@
   }
 
   function togglePause() {
+    $(".timer-settings-row").show();
     ensureAudio();
     if (mode === "stopped") return;
     mode = mode === "running" ? "paused" : "running";

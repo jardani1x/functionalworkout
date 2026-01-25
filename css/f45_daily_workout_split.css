@@ -88,7 +88,7 @@ html * {
   /* animation: borderCycle 4s infinite linear; */
 }
 .row-active td {
-  transform: scale(1.05);
+  /* transform: scale(1); */
   transition: transform 0.3s;
   background-color: #c9d3c0;
   color: #111;
@@ -102,11 +102,20 @@ html * {
   padding: 10px;
 }
 .row-active * {
-  font-size: calc(16px + 1vw);
+  /* font-size: calc(16px + 1vw); */
   color: #000 !important;
   margin: 5px;
   border-radius: 8px;
   /* filter: blur(10px); */
+}
+.stations-table tbody tr.row-active.row-recovery td {
+  background-color: #f2f2f2 !important; 
+}
+.currentExercise {
+color: #73c991;
+}
+.nextExercise {
+color: #ffbe42;
 }
 .lower_size {
   font-size: calc(14px - 0.1vw)
